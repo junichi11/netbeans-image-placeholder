@@ -1,6 +1,6 @@
 # Image Placeholder URL Generator
 
-This is a NetBeans plugin. Generate a URL for specified placeholder size.
+This is a NetBeans plugin. Generate a placeholder URL for specified size.
 
 ## Usage
 
