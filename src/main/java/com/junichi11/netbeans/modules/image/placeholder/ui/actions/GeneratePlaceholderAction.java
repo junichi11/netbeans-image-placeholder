@@ -39,6 +39,7 @@ import org.openide.util.NbBundle.Messages;
         id = "com.junichi11.netbeans.modules.image.placeholder.ui.actions.GeneratePlaceholderAction"
 )
 @ActionRegistration(
+        iconBase = "com/junichi11/netbeans/modules/image/placeholder/resources/icon16.png",
         displayName = "#CTL_GeneratePlaceholderAction"
 )
 @ActionReferences({
