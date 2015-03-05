@@ -88,6 +88,14 @@ public class PlaceholderMainPanel extends javax.swing.JPanel implements ChangeLi
         categoryList.setCellRenderer(new CategoryListCellRenderer(categoryList.getCellRenderer()));
     }
 
+    private String getAlt() {
+        return altTextField.getText();
+    }
+
+    private String getTitle() {
+        return titleTextField.getText();
+    }
+
     public void addCategoryPanel(PlaceholderCategoryPanel panel) {
         categoryListModel.addElement(panel);
     }
@@ -173,6 +181,10 @@ public class PlaceholderMainPanel extends javax.swing.JPanel implements ChangeLi
         loadDefaultButton = new javax.swing.JButton();
         previewScrollPane = new javax.swing.JScrollPane();
         previewTextPane = new javax.swing.JTextPane();
+        altLabel = new javax.swing.JLabel();
+        altTextField = new javax.swing.JTextField();
+        titleLabel = new javax.swing.JLabel();
+        titleTextField = new javax.swing.JTextField();
 
         categoryList.addListSelectionListener(new javax.swing.event.ListSelectionListener() {
             public void valueChanged(javax.swing.event.ListSelectionEvent evt) {
@@ -213,6 +225,14 @@ public class PlaceholderMainPanel extends javax.swing.JPanel implements ChangeLi
         previewTextPane.setContentType("text/html"); // NOI18N
         previewScrollPane.setViewportView(previewTextPane);
 
+        org.openide.awt.Mnemonics.setLocalizedText(altLabel, org.openide.util.NbBundle.getMessage(PlaceholderMainPanel.class, "PlaceholderMainPanel.altLabel.text")); // NOI18N
+
+        altTextField.setText(org.openide.util.NbBundle.getMessage(PlaceholderMainPanel.class, "PlaceholderMainPanel.altTextField.text")); // NOI18N
+
+        org.openide.awt.Mnemonics.setLocalizedText(titleLabel, org.openide.util.NbBundle.getMessage(PlaceholderMainPanel.class, "PlaceholderMainPanel.titleLabel.text")); // NOI18N
+
+        titleTextField.setText(org.openide.util.NbBundle.getMessage(PlaceholderMainPanel.class, "PlaceholderMainPanel.titleTextField.text")); // NOI18N
+
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
         this.setLayout(layout);
         layout.setHorizontalGroup(
@@ -223,10 +243,6 @@ public class PlaceholderMainPanel extends javax.swing.JPanel implements ChangeLi
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(layout.createSequentialGroup()
-                        .addComponent(urlLabel)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(urlTextField))
-                    .addGroup(layout.createSequentialGroup()
                         .addComponent(categoryPanel, javax.swing.GroupLayout.DEFAULT_SIZE, 270, Short.MAX_VALUE)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(previewScrollPane, javax.swing.GroupLayout.PREFERRED_SIZE, 240, javax.swing.GroupLayout.PREFERRED_SIZE))
@@ -236,7 +252,20 @@ public class PlaceholderMainPanel extends javax.swing.JPanel implements ChangeLi
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(saveAsDefaultButton)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(previewButton)))
+                        .addComponent(previewButton))
+                    .addGroup(layout.createSequentialGroup()
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addComponent(urlLabel)
+                            .addComponent(altLabel))
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addComponent(urlTextField)
+                            .addGroup(layout.createSequentialGroup()
+                                .addComponent(altTextField)
+                                .addGap(18, 18, 18)
+                                .addComponent(titleLabel)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(titleTextField)))))
                 .addContainerGap())
         );
         layout.setVerticalGroup(
@@ -245,13 +274,19 @@ public class PlaceholderMainPanel extends javax.swing.JPanel implements ChangeLi
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
                     .addGroup(layout.createSequentialGroup()
                         .addContainerGap()
-                        .addComponent(categoryScrollPane, javax.swing.GroupLayout.DEFAULT_SIZE, 221, Short.MAX_VALUE))
+                        .addComponent(categoryScrollPane, javax.swing.GroupLayout.DEFAULT_SIZE, 272, Short.MAX_VALUE))
                     .addGroup(layout.createSequentialGroup()
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addComponent(categoryPanel, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                             .addGroup(layout.createSequentialGroup()
                                 .addContainerGap()
                                 .addComponent(previewScrollPane)))
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                            .addComponent(altLabel)
+                            .addComponent(altTextField, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addComponent(titleLabel)
+                            .addComponent(titleTextField, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                             .addComponent(urlTextField, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
@@ -311,9 +346,21 @@ public class PlaceholderMainPanel extends javax.swing.JPanel implements ChangeLi
             }
 
             // create img tag
-            String url = selectedPanel.getUrl();
-            String name = selectedPanel.getCategoryName();
-            final String imgTag = String.format("<img src=\"%s\" alt=\"%s\" />", url, name); // NOI18N
+            // e.g. <img src="http://lorempixel/400/200" width="400" height="200" alt="something" title="something">
+            String alt = getAlt();
+            alt = alt.isEmpty() ? selectedPanel.getCategoryName() : alt;
+            String title = getTitle();
+            StringBuilder sb = new StringBuilder();
+            sb.append("<img src=\"").append(selectedPanel.getUrl()).append("\" ") // NOI18N
+                    .append("width=\"").append(selectedPanel.getImageWidth()).append("\" ") // NOI18N
+                    .append("height=\"").append(selectedPanel.getImageHeight()).append("\" ") // NOI18N
+                    .append("alt=\"").append(alt).append("\" "); // NOI18N
+            if (!title.isEmpty()) {
+                sb.append("title=\"").append(title).append("\" "); // NOI18N
+            }
+            sb.append("/>"); // NOI18N
+
+            final String imgTag = sb.toString();
 
             // insert
             try {
@@ -375,6 +422,8 @@ public class PlaceholderMainPanel extends javax.swing.JPanel implements ChangeLi
     }//GEN-LAST:event_loadDefaultButtonActionPerformed
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.JLabel altLabel;
+    private javax.swing.JTextField altTextField;
     private javax.swing.JList<PlaceholderCategoryPanel> categoryList;
     private javax.swing.JPanel categoryPanel;
     private javax.swing.JScrollPane categoryScrollPane;
@@ -383,6 +432,8 @@ public class PlaceholderMainPanel extends javax.swing.JPanel implements ChangeLi
     private javax.swing.JScrollPane previewScrollPane;
     private javax.swing.JTextPane previewTextPane;
     private javax.swing.JButton saveAsDefaultButton;
+    private javax.swing.JLabel titleLabel;
+    private javax.swing.JTextField titleTextField;
     private javax.swing.JLabel urlLabel;
     private javax.swing.JTextField urlTextField;
     // End of variables declaration//GEN-END:variables
