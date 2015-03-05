@@ -15,7 +15,7 @@ Load default values for specified placeholder.
 
 ### Save as default
 
-Save current placeholder's values as default.
+Save current placeholder's values as default. (NOTE: alt and title values are not saved)
 
 ### Update preview
 
@@ -23,12 +23,12 @@ If you don't click this button, it's not updated.
 
 ### Insert img tag
 
-Insert an img tag to a caret position of the current focused editor.
-
+Insert an img tag to a caret position of the current focused editor. alt ant title values are used with this feature.
+If alt is empty, service name is used as a value.
 e.g.
 
 ```html
-<img src="http://lorempixel.com/600/480" alt="lorempixel" />
+<img src="http://lorempixel.com/600/480" alt="lorempixel" title="something" />
 ```
 
 ### Copy

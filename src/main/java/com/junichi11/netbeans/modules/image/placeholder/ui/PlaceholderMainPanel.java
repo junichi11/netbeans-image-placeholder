@@ -56,18 +56,29 @@ import org.openide.util.NbBundle;
  *
  * @author junichi11
  */
+@NbBundle.Messages({
+    "PlaceholderMainPanel.insert.img.tag.option=Insert img tag",
+    "PlaceholderMainPanel.copy.option=Copy",
+    "PlaceholderMainPanel.close.option=Close"
+})
 public class PlaceholderMainPanel extends javax.swing.JPanel implements ChangeListener {
 
     private static PlaceholderMainPanel defaultMainPanel;
     private static final long serialVersionUID = -8610347636891465814L;
     private static final Logger LOGGER = Logger.getLogger(PlaceholderMainPanel.class.getName());
 
+    private static final Object INSERT_IMG_TAG_OPTION = Bundle.PlaceholderMainPanel_insert_img_tag_option();
+    private static final Object COPY_OPTION = Bundle.PlaceholderMainPanel_copy_option();
+    private static final Object CLOSE_OPTION = Bundle.PlaceholderMainPanel_close_option();
+
+    private DialogDescriptor descriptor;
+
     private final DefaultListModel<PlaceholderCategoryPanel> categoryListModel = new DefaultListModel<>();
 
     /**
      * Creates new form ImagePlaceholderMainPanel
      */
-    public PlaceholderMainPanel() {
+    private PlaceholderMainPanel() {
         initComponents();
         init();
     }
@@ -75,6 +86,14 @@ public class PlaceholderMainPanel extends javax.swing.JPanel implements ChangeLi
     private void init() {
         categoryList.setModel(categoryListModel);
         categoryList.setCellRenderer(new CategoryListCellRenderer(categoryList.getCellRenderer()));
+    }
+
+    private String getAlt() {
+        return altTextField.getText();
+    }
+
+    private String getTitle() {
+        return titleTextField.getText();
     }
 
     public void addCategoryPanel(PlaceholderCategoryPanel panel) {
@@ -88,6 +107,14 @@ public class PlaceholderMainPanel extends javax.swing.JPanel implements ChangeLi
     @CheckForNull
     public PlaceholderCategoryPanel getSelectedPanel() {
         return categoryList.getSelectedValue();
+    }
+
+    private Object[] getOptions() {
+        return new Object[]{INSERT_IMG_TAG_OPTION, COPY_OPTION, CLOSE_OPTION};
+    }
+
+    private Object[] getClosingOptions() {
+        return new Object[]{CLOSE_OPTION};
     }
 
     @NbBundle.Messages({
@@ -109,19 +136,30 @@ public class PlaceholderMainPanel extends javax.swing.JPanel implements ChangeLi
                 }
             }
         }
-
-        DialogDescriptor descriptor = new DialogDescriptor(defaultMainPanel, Bundle.PlaceholderCategoryPanel_title(), false, DialogDescriptor.DEFAULT_OPTION, null, null);
-        final Dialog dialog = DialogDisplayer.getDefault().createDialog(descriptor);
-        descriptor.setButtonListener(new ActionListener() {
-
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                dialog.dispose();
-            }
-        });
+        DialogDescriptor dialogDescriptor = defaultMainPanel.getDescriptor();
+        final Dialog dialog = DialogDisplayer.getDefault().createDialog(dialogDescriptor);
         dialog.pack();
         dialog.setVisible(true);
         defaultMainPanel.stateChanged(null);
+    }
+
+    public DialogDescriptor getDescriptor() {
+        if (descriptor == null) {
+            descriptor = new DialogDescriptor(this, Bundle.PlaceholderCategoryPanel_title(), false, DialogDescriptor.DEFAULT_OPTION, null, null);
+            descriptor.setOptions(getOptions());
+            descriptor.setClosingOptions(getClosingOptions());
+            descriptor.setButtonListener(new ActionListener() {
+                @Override
+                public void actionPerformed(ActionEvent e) {
+                    if (descriptor.getValue() == INSERT_IMG_TAG_OPTION) {
+                        insertImgTag();
+                    } else if (descriptor.getValue() == COPY_OPTION) {
+                        copyToClipboard();
+                    }
+                }
+            });
+        }
+        return descriptor;
     }
 
     /**
@@ -138,13 +176,15 @@ public class PlaceholderMainPanel extends javax.swing.JPanel implements ChangeLi
         categoryPanel = new javax.swing.JPanel();
         urlLabel = new javax.swing.JLabel();
         urlTextField = new javax.swing.JTextField();
-        copyButton = new javax.swing.JButton();
-        insertImgTagButton = new javax.swing.JButton();
         previewButton = new javax.swing.JButton();
         saveAsDefaultButton = new javax.swing.JButton();
         loadDefaultButton = new javax.swing.JButton();
         previewScrollPane = new javax.swing.JScrollPane();
         previewTextPane = new javax.swing.JTextPane();
+        altLabel = new javax.swing.JLabel();
+        altTextField = new javax.swing.JTextField();
+        titleLabel = new javax.swing.JLabel();
+        titleTextField = new javax.swing.JTextField();
 
         categoryList.addListSelectionListener(new javax.swing.event.ListSelectionListener() {
             public void valueChanged(javax.swing.event.ListSelectionEvent evt) {
@@ -159,20 +199,6 @@ public class PlaceholderMainPanel extends javax.swing.JPanel implements ChangeLi
 
         urlTextField.setEditable(false);
         urlTextField.setText(org.openide.util.NbBundle.getMessage(PlaceholderMainPanel.class, "PlaceholderMainPanel.urlTextField.text")); // NOI18N
-
-        org.openide.awt.Mnemonics.setLocalizedText(copyButton, org.openide.util.NbBundle.getMessage(PlaceholderMainPanel.class, "PlaceholderMainPanel.copyButton.text")); // NOI18N
-        copyButton.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                copyButtonActionPerformed(evt);
-            }
-        });
-
-        org.openide.awt.Mnemonics.setLocalizedText(insertImgTagButton, org.openide.util.NbBundle.getMessage(PlaceholderMainPanel.class, "PlaceholderMainPanel.insertImgTagButton.text")); // NOI18N
-        insertImgTagButton.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                insertImgTagButtonActionPerformed(evt);
-            }
-        });
 
         org.openide.awt.Mnemonics.setLocalizedText(previewButton, org.openide.util.NbBundle.getMessage(PlaceholderMainPanel.class, "PlaceholderMainPanel.previewButton.text")); // NOI18N
         previewButton.addActionListener(new java.awt.event.ActionListener() {
@@ -199,6 +225,14 @@ public class PlaceholderMainPanel extends javax.swing.JPanel implements ChangeLi
         previewTextPane.setContentType("text/html"); // NOI18N
         previewScrollPane.setViewportView(previewTextPane);
 
+        org.openide.awt.Mnemonics.setLocalizedText(altLabel, org.openide.util.NbBundle.getMessage(PlaceholderMainPanel.class, "PlaceholderMainPanel.altLabel.text")); // NOI18N
+
+        altTextField.setText(org.openide.util.NbBundle.getMessage(PlaceholderMainPanel.class, "PlaceholderMainPanel.altTextField.text")); // NOI18N
+
+        org.openide.awt.Mnemonics.setLocalizedText(titleLabel, org.openide.util.NbBundle.getMessage(PlaceholderMainPanel.class, "PlaceholderMainPanel.titleLabel.text")); // NOI18N
+
+        titleTextField.setText(org.openide.util.NbBundle.getMessage(PlaceholderMainPanel.class, "PlaceholderMainPanel.titleTextField.text")); // NOI18N
+
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
         this.setLayout(layout);
         layout.setHorizontalGroup(
@@ -209,24 +243,29 @@ public class PlaceholderMainPanel extends javax.swing.JPanel implements ChangeLi
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(layout.createSequentialGroup()
-                        .addComponent(urlLabel)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(urlTextField))
-                    .addGroup(layout.createSequentialGroup()
-                        .addComponent(categoryPanel, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                        .addComponent(categoryPanel, javax.swing.GroupLayout.DEFAULT_SIZE, 270, Short.MAX_VALUE)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(previewScrollPane, javax.swing.GroupLayout.PREFERRED_SIZE, 240, javax.swing.GroupLayout.PREFERRED_SIZE))
                     .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
-                        .addGap(0, 67, Short.MAX_VALUE)
+                        .addGap(0, 0, Short.MAX_VALUE)
                         .addComponent(loadDefaultButton)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(saveAsDefaultButton)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(previewButton)
+                        .addComponent(previewButton))
+                    .addGroup(layout.createSequentialGroup()
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addComponent(urlLabel)
+                            .addComponent(altLabel))
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(insertImgTagButton)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(copyButton)))
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addComponent(urlTextField)
+                            .addGroup(layout.createSequentialGroup()
+                                .addComponent(altTextField)
+                                .addGap(18, 18, 18)
+                                .addComponent(titleLabel)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(titleTextField)))))
                 .addContainerGap())
         );
         layout.setVerticalGroup(
@@ -235,7 +274,7 @@ public class PlaceholderMainPanel extends javax.swing.JPanel implements ChangeLi
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
                     .addGroup(layout.createSequentialGroup()
                         .addContainerGap()
-                        .addComponent(categoryScrollPane, javax.swing.GroupLayout.DEFAULT_SIZE, 221, Short.MAX_VALUE))
+                        .addComponent(categoryScrollPane, javax.swing.GroupLayout.DEFAULT_SIZE, 272, Short.MAX_VALUE))
                     .addGroup(layout.createSequentialGroup()
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addComponent(categoryPanel, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
@@ -244,12 +283,16 @@ public class PlaceholderMainPanel extends javax.swing.JPanel implements ChangeLi
                                 .addComponent(previewScrollPane)))
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                            .addComponent(altLabel)
+                            .addComponent(altTextField, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addComponent(titleLabel)
+                            .addComponent(titleTextField, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                             .addComponent(urlTextField, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                             .addComponent(urlLabel))
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                            .addComponent(copyButton)
-                            .addComponent(insertImgTagButton)
                             .addComponent(previewButton)
                             .addComponent(saveAsDefaultButton)
                             .addComponent(loadDefaultButton))))
@@ -289,18 +332,7 @@ public class PlaceholderMainPanel extends javax.swing.JPanel implements ChangeLi
         }
     }//GEN-LAST:event_previewButtonActionPerformed
 
-    private void copyButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_copyButtonActionPerformed
-        PlaceholderCategoryPanel selectedPanel = getSelectedPanel();
-        if (selectedPanel == null) {
-            return;
-        }
-        Toolkit toolkit = Toolkit.getDefaultToolkit();
-        Clipboard clipboard = toolkit.getSystemClipboard();
-        StringSelection selection = new StringSelection(selectedPanel.getUrl());
-        clipboard.setContents(selection, selection);
-    }//GEN-LAST:event_copyButtonActionPerformed
-
-    private void insertImgTagButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_insertImgTagButtonActionPerformed
+    private void insertImgTag() {
         PlaceholderCategoryPanel selectedPanel = getSelectedPanel();
         if (selectedPanel != null) {
             JTextComponent editor = EditorRegistry.lastFocusedComponent();
@@ -314,9 +346,21 @@ public class PlaceholderMainPanel extends javax.swing.JPanel implements ChangeLi
             }
 
             // create img tag
-            String url = selectedPanel.getUrl();
-            String name = selectedPanel.getCategoryName();
-            final String imgTag = String.format("<img src=\"%s\" alt=\"%s\" />", url, name); // NOI18N
+            // e.g. <img src="http://lorempixel/400/200" width="400" height="200" alt="something" title="something">
+            String alt = getAlt();
+            alt = alt.isEmpty() ? selectedPanel.getCategoryName() : alt;
+            String title = getTitle();
+            StringBuilder sb = new StringBuilder();
+            sb.append("<img src=\"").append(selectedPanel.getUrl()).append("\" ") // NOI18N
+                    .append("width=\"").append(selectedPanel.getImageWidth()).append("\" ") // NOI18N
+                    .append("height=\"").append(selectedPanel.getImageHeight()).append("\" ") // NOI18N
+                    .append("alt=\"").append(alt).append("\" "); // NOI18N
+            if (!title.isEmpty()) {
+                sb.append("title=\"").append(title).append("\" "); // NOI18N
+            }
+            sb.append("/>"); // NOI18N
+
+            final String imgTag = sb.toString();
 
             // insert
             try {
@@ -335,7 +379,18 @@ public class PlaceholderMainPanel extends javax.swing.JPanel implements ChangeLi
                 LOGGER.log(Level.WARNING, ex.getMessage());
             }
         }
-    }//GEN-LAST:event_insertImgTagButtonActionPerformed
+    }
+
+    private void copyToClipboard() {
+        PlaceholderCategoryPanel selectedPanel = getSelectedPanel();
+        if (selectedPanel == null) {
+            return;
+        }
+        Toolkit toolkit = Toolkit.getDefaultToolkit();
+        Clipboard clipboard = toolkit.getSystemClipboard();
+        StringSelection selection = new StringSelection(selectedPanel.getUrl());
+        clipboard.setContents(selection, selection);
+    }
 
     @NbBundle.Messages({
         "# {0} - name",
@@ -367,16 +422,18 @@ public class PlaceholderMainPanel extends javax.swing.JPanel implements ChangeLi
     }//GEN-LAST:event_loadDefaultButtonActionPerformed
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.JLabel altLabel;
+    private javax.swing.JTextField altTextField;
     private javax.swing.JList<PlaceholderCategoryPanel> categoryList;
     private javax.swing.JPanel categoryPanel;
     private javax.swing.JScrollPane categoryScrollPane;
-    private javax.swing.JButton copyButton;
-    private javax.swing.JButton insertImgTagButton;
     private javax.swing.JButton loadDefaultButton;
     private javax.swing.JButton previewButton;
     private javax.swing.JScrollPane previewScrollPane;
     private javax.swing.JTextPane previewTextPane;
     private javax.swing.JButton saveAsDefaultButton;
+    private javax.swing.JLabel titleLabel;
+    private javax.swing.JTextField titleTextField;
     private javax.swing.JLabel urlLabel;
     private javax.swing.JTextField urlTextField;
     // End of variables declaration//GEN-END:variables

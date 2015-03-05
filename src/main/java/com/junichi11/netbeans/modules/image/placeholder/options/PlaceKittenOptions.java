@@ -45,7 +45,7 @@ public final class PlaceKittenOptions extends PlaceholderOptions {
     }
 
     public int getWidth() {
-        return getPreferences().getInt(WIDTH, 400);
+        return getPreferences().getInt(WIDTH, 420);
     }
 
     public void setWidth(int width) {
@@ -53,7 +53,7 @@ public final class PlaceKittenOptions extends PlaceholderOptions {
     }
 
     public int getHeight() {
-        return getPreferences().getInt(HEIGHT, 200);
+        return getPreferences().getInt(HEIGHT, 300);
     }
 
     public void setHeight(int height) {
