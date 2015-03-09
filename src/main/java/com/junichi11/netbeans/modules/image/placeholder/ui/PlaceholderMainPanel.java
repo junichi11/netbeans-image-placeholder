@@ -64,6 +64,7 @@ import org.openide.util.NbBundle;
 public class PlaceholderMainPanel extends javax.swing.JPanel implements ChangeListener {
 
     private static PlaceholderMainPanel defaultMainPanel;
+    private static Dialog dialog;
     private static final long serialVersionUID = -8610347636891465814L;
     private static final Logger LOGGER = Logger.getLogger(PlaceholderMainPanel.class.getName());
 
@@ -136,8 +137,10 @@ public class PlaceholderMainPanel extends javax.swing.JPanel implements ChangeLi
                 }
             }
         }
-        DialogDescriptor dialogDescriptor = defaultMainPanel.getDescriptor();
-        final Dialog dialog = DialogDisplayer.getDefault().createDialog(dialogDescriptor);
+        if (dialog == null) {
+            DialogDescriptor dialogDescriptor = defaultMainPanel.getDescriptor();
+            dialog = DialogDisplayer.getDefault().createDialog(dialogDescriptor);
+        }
         dialog.pack();
         dialog.setVisible(true);
         defaultMainPanel.stateChanged(null);
