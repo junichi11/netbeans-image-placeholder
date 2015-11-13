@@ -94,7 +94,7 @@
     </dependencies>
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <netbeans.version>RELEASE80</netbeans.version>
+        <netbeans.version>RELEASE81</netbeans.version>
     </properties>
     <name>Image Placeholder URL Generator</name>
     <description>Generate a placeholder URL
